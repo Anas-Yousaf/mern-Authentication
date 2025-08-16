@@ -1,0 +1,454 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Authentication and Authorization Notes - Exam Version</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            line-height: 1.6;
+            background-color: white;
+            color: #333;
+            padding: 20px;
+            max-width: 1200px;
+            margin: 0 auto;
+        }
+
+        .container {
+            background: white;
+            padding: 30px;
+            border-radius: 8px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+        }
+
+        h1 {
+            color: #2c3e50;
+            text-align: center;
+            margin-bottom: 30px;
+            font-size: 2.5em;
+            border-bottom: 3px solid #3498db;
+            padding-bottom: 15px;
+        }
+
+        h2 {
+            color: #34495e;
+            margin: 30px 0 15px 0;
+            font-size: 1.8em;
+            border-left: 4px solid #3498db;
+            padding-left: 15px;
+        }
+
+        h3 {
+            color: #2980b9;
+            margin: 25px 0 10px 0;
+            font-size: 1.3em;
+        }
+
+        p {
+            margin-bottom: 15px;
+            text-align: justify;
+        }
+
+        ul {
+            margin: 15px 0 15px 30px;
+        }
+
+        li {
+            margin-bottom: 8px;
+        }
+
+        .code-block {
+            background-color: #f8f9fa;
+            border: 1px solid #e9ecef;
+            border-radius: 6px;
+            padding: 20px;
+            margin: 20px 0;
+            overflow-x: auto;
+            font-family: 'Fira Code', 'Courier New', Courier, monospace;
+            font-size: 14px;
+            line-height: 1.6;
+            white-space: pre;
+            tab-size: 2;
+        }
+
+        .filename {
+            background-color: #2c3e50;
+            color: white;
+            padding: 8px 15px;
+            font-size: 12px;
+            font-weight: bold;
+            border-radius: 6px 6px 0 0;
+            margin-bottom: 0;
+        }
+
+        .filename + .code-block {
+            margin-top: 0;
+            border-radius: 0 0 6px 6px;
+        }
+
+        .highlight {
+            background-color: #fff3cd;
+            padding: 15px;
+            border-left: 4px solid #ffc107;
+            margin: 20px 0;
+            border-radius: 0 6px 6px 0;
+        }
+
+        .note {
+            background-color: #d1ecf1;
+            border: 1px solid #bee5eb;
+            color: #0c5460;
+            padding: 15px;
+            border-radius: 6px;
+            margin: 20px 0;
+        }
+
+        .footer {
+            text-align: center;
+            margin-top: 50px;
+            padding-top: 20px;
+            border-top: 2px solid #3498db;
+            font-style: italic;
+            color: #7f8c8d;
+        }
+
+        .toc {
+            background-color: #f8f9fa;
+            padding: 20px;
+            border-radius: 6px;
+            margin: 20px 0;
+        }
+
+        .toc ul {
+            list-style-type: none;
+            margin-left: 0;
+        }
+
+        .toc li {
+            margin: 8px 0;
+        }
+
+        .toc a {
+            text-decoration: none;
+            color: #2980b9;
+            font-weight: 500;
+        }
+
+        .toc a:hover {
+            text-decoration: underline;
+        }
+
+        @media (max-width: 768px) {
+            body {
+                padding: 10px;
+            }
+            
+            .container {
+                padding: 20px;
+            }
+            
+            h1 {
+                font-size: 2em;
+            }
+            
+            .code-block {
+                font-size: 12px;
+                padding: 15px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>Authentication and Authorization Notes (Exam Version)</h1>
+        
+        <div class="toc">
+            <h3>Table of Contents</h3>
+            <ul>
+                <li><a href="#intro">1. Introduction to Authentication and Authorization</a></li>
+                <li><a href="#setup">2. Simple User Registration and Login System</a></li>
+                <li><a href="#bcrypt">3. Password Hashing with bcrypt</a></li>
+                <li><a href="#complete-example">4. Complete Single File Implementation</a></li>
+            </ul>
+        </div>
+
+        <section id="intro">
+            <h2>1. Introduction to Authentication and Authorization</h2>
+            
+            <h3>Authentication</h3>
+            <p><strong>Authentication</strong> verifies WHO the user is. It's like showing your ID card.</p>
+            <ul>
+                <li>Login with email/password</li>
+                <li>Check if user exists in database</li>
+                <li>Compare entered password with stored password</li>
+            </ul>
+
+            <h3>Authorization</h3>
+            <p><strong>Authorization</strong> determines WHAT the user can do. It's like checking permissions.</p>
+            <ul>
+                <li>Admin can delete posts</li>
+                <li>Regular user can only view posts</li>
+                <li>Guest cannot access dashboard</li>
+            </ul>
+
+            <div class="highlight">
+                <strong>Simple Rule:</strong> Authentication = Login, Authorization = Permissions
+            </div>
+        </section>
+
+        <section id="setup">
+            <h2>2. Simple User Registration and Login System</h2>
+            
+            <h3>Required Packages</h3>
+            <div class="filename">package.json</div>
+            <div class="code-block">{
+  "name": "simple-auth",
+  "version": "1.0.0",
+  "dependencies": {
+    "express": "^4.18.0",
+    "mongoose": "^7.0.0",
+    "bcryptjs": "^2.4.3",
+    "ejs": "^3.1.8"
+  }
+}</div>
+
+            <h3>Simple User Schema</h3>
+            <div class="code-block">const userSchema = new mongoose.Schema({
+  name: String,
+  email: String,
+  password: String
+});</div>
+
+            <div class="note">
+                <strong>Exam Tip:</strong> Keep the schema simple - just name, email, and password. No validation needed for exams.
+            </div>
+        </section>
+
+        <section id="bcrypt">
+            <h2>3. Password Hashing with bcrypt</h2>
+            
+            <h3>Why Hash Passwords?</h3>
+            <p>Never store plain text passwords! Hashing makes them unreadable even if database is stolen.</p>
+
+            <h3>bcrypt Basic Usage</h3>
+            <div class="code-block">// Hash password before saving
+const bcrypt = require('bcryptjs');
+const hashedPassword = await bcrypt.hash(password, 10);
+
+// Compare password during login
+const isMatch = await bcrypt.compare(password, hashedPassword);</div>
+
+            <div class="highlight">
+                <strong>Remember:</strong> 
+                <ul>
+                    <li><code>bcrypt.hash()</code> - to encrypt password</li>
+                    <li><code>bcrypt.compare()</code> - to check password</li>
+                    <li>Always use <code>await</code> with bcrypt methods</li>
+                </ul>
+            </div>
+        </section>
+
+        <section id="complete-example">
+            <h2>4. Complete Single File Implementation</h2>
+            
+            <h3>Complete Backend Code (One File)</h3>
+            <div class="filename">app.js</div>
+            <div class="code-block">const express = require('express');
+const mongoose = require('mongoose');
+const bcrypt = require('bcryptjs');
+const app = express();
+
+// Connect to MongoDB
+mongoose.connect('mongodb://localhost:27017/authdb');
+
+// User Schema
+const User = mongoose.model('User', {
+  name: String,
+  email: String,
+  password: String
+});
+
+// Middleware
+app.use(express.urlencoded({ extended: true }));
+app.set('view engine', 'ejs');
+
+// Routes
+app.get('/', (req, res) => {
+  res.render('login');
+});
+
+// Register Route
+app.post('/register', async (req, res) => {
+  const { name, email, password } = req.body;
+  
+  // Hash password
+  const hashedPassword = await bcrypt.hash(password, 10);
+  
+  // Save user
+  const user = new User({
+    name: name,
+    email: email,
+    password: hashedPassword
+  });
+  
+  await user.save();
+  res.send('User registered successfully!');
+});
+
+// Login Route
+app.post('/login', async (req, res) => {
+  const { email, password } = req.body;
+  
+  // Find user
+  const user = await User.findOne({ email: email });
+  
+  if (!user) {
+    return res.send('User not found');
+  }
+  
+  // Check password
+  const isMatch = await bcrypt.compare(password, user.password);
+  
+  if (isMatch) {
+    res.send(`Welcome ${user.name}!`);
+  } else {
+    res.send('Wrong password');
+  }
+});
+
+app.listen(3000, () => {
+  console.log('Server running on port 3000');
+});</div>
+
+            <h3>Simple EJS Templates</h3>
+            
+            <h4>Login/Register Form</h4>
+            <div class="filename">views/login.ejs</div>
+            <div class="code-block">&lt;html&gt;
+&lt;body&gt;
+  &lt;h2&gt;Register&lt;/h2&gt;
+  &lt;form action="/register" method="POST"&gt;
+    &lt;input type="text" name="name" placeholder="Name" required&gt;&lt;br&gt;&lt;br&gt;
+    &lt;input type="email" name="email" placeholder="Email" required&gt;&lt;br&gt;&lt;br&gt;
+    &lt;input type="password" name="password" placeholder="Password" required&gt;&lt;br&gt;&lt;br&gt;
+    &lt;button type="submit"&gt;Register&lt;/button&gt;
+  &lt;/form&gt;
+  
+  &lt;h2&gt;Login&lt;/h2&gt;
+  &lt;form action="/login" method="POST"&gt;
+    &lt;input type="email" name="email" placeholder="Email" required&gt;&lt;br&gt;&lt;br&gt;
+    &lt;input type="password" name="password" placeholder="Password" required&gt;&lt;br&gt;&lt;br&gt;
+    &lt;button type="submit"&gt;Login&lt;/button&gt;
+  &lt;/form&gt;
+&lt;/body&gt;
+&lt;/html&gt;</div>
+
+            <div class="highlight">
+                <h3>Exam Steps (Easy to Remember)</h3>
+                <ol>
+                    <li><strong>Install:</strong> express, mongoose, bcryptjs, ejs</li>
+                    <li><strong>Schema:</strong> name, email, password (simple)</li>
+                    <li><strong>Register:</strong> hash password → save user</li>
+                    <li><strong>Login:</strong> find user → compare password</li>
+                    <li><strong>EJS:</strong> simple forms for register/login</li>
+                </ol>
+            </div>
+
+            <h3>Even Shorter Version (Minimal Code)</h3>
+            <div class="filename">minimal-auth.js</div>
+            <div class="code-block">const express = require('express');
+const mongoose = require('mongoose');
+const bcrypt = require('bcryptjs');
+const app = express();
+
+mongoose.connect('mongodb://localhost:27017/authdb');
+
+const User = mongoose.model('User', {
+  name: String,
+  email: String,
+  password: String
+});
+
+app.use(express.urlencoded({ extended: true }));
+app.use(express.static('public'));
+
+// Register
+app.post('/register', async (req, res) => {
+  const hashedPassword = await bcrypt.hash(req.body.password, 10);
+  const user = new User({
+    name: req.body.name,
+    email: req.body.email,
+    password: hashedPassword
+  });
+  await user.save();
+  res.send('Registered!');
+});
+
+// Login
+app.post('/login', async (req, res) => {
+  const user = await User.findOne({ email: req.body.email });
+  if (user && await bcrypt.compare(req.body.password, user.password)) {
+    res.send(`Welcome ${user.name}!`);
+  } else {
+    res.send('Login failed!');
+  }
+});
+
+app.listen(3000);</div>
+
+            <div class="note">
+                <strong>For Exams:</strong>
+                <ul>
+                    <li>Use the minimal version (30 lines of code)</li>
+                    <li>Focus on: connect DB → create schema → hash password → compare password</li>
+                    <li>Don't worry about error handling or validation</li>
+                    <li>Keep HTML forms simple with basic input fields</li>
+                </ul>
+            </div>
+
+            <h3>HTML Form (No EJS needed)</h3>
+            <div class="filename">public/index.html</div>
+            <div class="code-block">&lt;html&gt;
+&lt;body&gt;
+  &lt;h1&gt;Register&lt;/h1&gt;
+  &lt;form action="/register" method="POST"&gt;
+    Name: &lt;input type="text" name="name"&gt;&lt;br&gt;
+    Email: &lt;input type="email" name="email"&gt;&lt;br&gt;
+    Password: &lt;input type="password" name="password"&gt;&lt;br&gt;
+    &lt;button&gt;Register&lt;/button&gt;
+  &lt;/form&gt;
+  
+  &lt;h1&gt;Login&lt;/h1&gt;
+  &lt;form action="/login" method="POST"&gt;
+    Email: &lt;input type="email" name="email"&gt;&lt;br&gt;
+    Password: &lt;input type="password" name="password"&gt;&lt;br&gt;
+    &lt;button&gt;Login&lt;/button&gt;
+  &lt;/form&gt;
+&lt;/body&gt;
+&lt;/html&gt;</div>
+
+            <div class="highlight">
+                <h3>Key Points for Exam:</h3>
+                <ul>
+                    <li><strong>Authentication:</strong> Login process (check user exists)</li>
+                    <li><strong>Authorization:</strong> Permission system (who can do what)</li>
+                    <li><strong>bcrypt.hash():</strong> Encrypt password before saving</li>
+                    <li><strong>bcrypt.compare():</strong> Check password during login</li>
+                    <li><strong>Always use await:</strong> With async database operations</li>
+                </ul>
+            </div>
+        </section>
+
+        <div class="footer">
+            <p>Notes created by <strong>Anas Mughal</strong></p>
+        </div>
+    </div>
+</body>
+</html>
